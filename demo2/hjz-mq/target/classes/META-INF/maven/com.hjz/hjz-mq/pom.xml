@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+        <artifactId>demo2</artifactId>
+        <groupId>com.hjz</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+	<artifactId>hjz-mq</artifactId>
+	<dependencies>
+		<dependency>
+		  <groupId>org.springframework</groupId>
+		  <artifactId>spring-beans</artifactId>
+		  <version>4.2.5.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>com.yonyou.iuap</groupId>
+			<artifactId>iuap-log</artifactId>
+			<version>2.0.1-SNAPSHOT</version>
+		</dependency>
+	    <dependency>
+	        <groupId>org.springframework.amqp</groupId>
+	        <artifactId>spring-rabbit</artifactId>
+	        <version>1.6.1.RELEASE</version>
+	    </dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.8</version>
+		</dependency>
+		<dependency>
+		  <groupId>org.apache.commons</groupId>
+		  <artifactId>commons-lang3</artifactId>
+		  <version>3.4</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>com.yonyou.iuap</groupId>
+			<artifactId>iuap-mq</artifactId>
+			<version>3.0.0-RELEASE</version>
+		</dependency> -->
+		<!-- <dependency>
+			<groupId>com.yyjz</groupId>
+			<artifactId>icop-log-db-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency> -->
+		
+	</dependencies>
+</project>

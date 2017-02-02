@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/rabbit
+	http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd">
+ 	
+	<!-- 连接服务配置  -->
+	<rabbit:connection-factory id="myConnectionFactory" addresses="${mq.addresses}"  username="${mq.username}" password="${mq.password}" publisher-confirms="false"/>
+	<!-- spring amqp默认的是jackson 的一个插件,目的将生产者生产的数据转换为json存入消息队列，由于fastjson的速度快于jackson,这里替换为fastjson的一个实现 -->
+    <bean id="myJsonMessageConverter" class="com.hjz.mq.converter.FastJsonMessageConverter"></bean>
+	<bean id="myRetryConnTemplate" class="org.springframework.retry.support.RetryTemplate">
+        <property name="backOffPolicy">
+            <bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+                <property name="initialInterval" value="500"/>
+                <property name="multiplier" value="10.0"/>
+                <property name="maxInterval" value="5000"/>
+            </bean>
+        </property>
+    </bean>
+	<bean id="myRabbitAdmin" class="org.springframework.amqp.rabbit.core.RabbitAdmin">    
+        <constructor-arg ref="myConnectionFactory" />    
+    </bean>    
+    <bean id="myRabbitTemplate"  class="org.springframework.amqp.rabbit.core.RabbitTemplate">    
+        <constructor-arg ref="myConnectionFactory"></constructor-arg>
+        <property name="messageConverter" ref="myJsonMessageConverter"></property>    
+    </bean>
+    
+    <!-- 消费端用于监听 -->
+	<!-- <bean id="myListenerContainer"  class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">    
+        <property name="connectionFactory" ref="myConnectionFactory"></property> 
+    </bean>  -->
+	
+	<!-- 发送端 -->
+	<bean id="msgSender" class="com.hjz.mq.sender.impl.MsgSenderImpl" />
+	
+	<!-- 
+		<rabbit:queue id="dev_spot_queue_ack" name="dev_spot_queue_ack" durable="true" auto-delete="false" exclusive="false"/>
+		<rabbit:listener-container connection-factory="connectionFactory" acknowledge="manual">
+			<rabbit:listener queues="dev_spot_queue_ack" ref="xxx"/>
+		</rabbit:listener-container>
+	 -->
+</beans>

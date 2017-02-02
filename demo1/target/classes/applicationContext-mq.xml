@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/rabbit
+	http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd">
+ 	
+	<description>rabbitmq 连接服务配置</description>
+    <!-- 连接配置 -->
+    <rabbit:connection-factory id="connectionFactory" addresses="${mq.addresses}"  username="${mq.username}" password="${mq.password}" />
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!-- spring template声明-->
+    <rabbit:template id="amqpTemplate" exchange="test-mq-exchange"  connection-factory="connectionFactory"  message-converter="jsonMessageConverter" />
+
+    <!-- 消息对象json转换类 -->
+    <bean id="jsonMessageConverter" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+	<!-- 
+		消息队列Queue 
+		durable:是否持久化
+		exclusive: 仅创建者可以使用的私有队列，断开后自动删除
+		auto_delete: 当所有消费客户端连接断开后，是否自动删除队列
+	-->
+    <rabbit:queue id="test_queue_id" name="test_queue_name" durable="true" auto-delete="false" exclusive="false" />
+	
+	<!-- 
+		交换机定义
+		rabbit:direct-exchange：定义exchange模式为direct，意思就是消息与一个特定的路由键完全匹配，才会转发。 
+		rabbit:binding：设置消息queue匹配的key 
+		打印的消息实体：(Body:'{"id":"02cf5aee-d56d-4b54-ad76-a7ec6d4720b6","type":null,"params":null,"body":"大家好，我是hjzgg!!!"}' MessageProperties [headers={__TypeId__=com.hjz.rabbit.common.MqMessage}, timestamp=null, messageId=null, userId=null, receivedUserId=null, appId=null, clusterId=null, type=null, correlationId=null, correlationIdString=null, replyTo=null, contentType=application/json, contentEncoding=UTF-8, contentLength=0, deliveryMode=null, receivedDeliveryMode=PERSISTENT, expiration=null, priority=0, redelivered=false, receivedExchange=, receivedRoutingKey=test_queue_name, receivedDelay=null, deliveryTag=1, messageCount=0, consumerTag=amq.ctag-HyePMBO-c59W3z9q9DRaug, consumerQueue=test_queue_name])
+		key 对应的就是  receivedRoutingKey 对应的值， 而这个值就是在 amqpTemplate.convertAndSend(queueName, message) 中的 queueName。如果rabbit:template 不配置 exchange属性，那么 receivedRoutingKey 就是 队列的 name值
+	-->
+	<rabbit:direct-exchange name="test-mq-exchange" durable="true" auto-delete="false" id="test-mq-exchange">
+	    <rabbit:bindings>
+	        <rabbit:binding queue="test_queue_name" key="test_queue_routing_key"/>
+	    </rabbit:bindings>
+	</rabbit:direct-exchange>
+	<!-- 
+		监听配置
+		queues：监听的队列，多个的话用逗号（,）分隔 
+		ref：监听器
+	-->
+	<rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
+	    <rabbit:listener queues="test_queue_name" ref="queueListenter"/>
+	</rabbit:listener-container> 
+</beans>

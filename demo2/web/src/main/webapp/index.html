@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>消息展示</title>
+<script src="/web/scripts/boot.js" type="text/javascript"></script>
+<link href="/web/scripts/miniui/themes/default/large-mode.css"
+	rel="stylesheet" type="text/css" />
+<link href="/web/scripts/miniui/themes/bootstrap/skin.css"
+	rel="stylesheet" type="text/css" />
+
+<style>
+.container {
+	padding: 30px;
+}
+
+.container .mini-panel {
+	margin-right: 20px;
+	margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+	<div class="container">
+		<div class="mini-clearfix ">
+			<div class="mini-col-6">
+				<div class="mini-panel" title="发送消息" width="auto" height="auto"
+					showCollapseButton="true" showCloseButton="false">
+					<div id="panel_send" class="mini-panel" title="模拟消息发送"
+						iconCls="icon-upload" style="width: 600px; height: 300px;"
+						showToolbar="false" showCollapseButton="true" showFooter="false"
+						allowResize="true" collapseOnTitleClick="true"></div>
+				</div>
+			</div>
+			<div class="mini-col-6">
+				<div class="mini-panel mini-panel-primary" title="接收消息" width="auto"
+					showCollapseButton="true" showCloseButton="false">
+					<div id="panel_receive" class="mini-panel mini-panel-primary"
+						title="模拟消息接收" iconCls="icon-download"
+						style="width: 600px; height: 300px;" showToolbar="false"
+						showCollapseButton="true" showFooter="false" allowResize="true"
+						collapseOnTitleClick="true"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	mini.parse();
+	var panel_send = mini.get('panel_send');
+	var panel_receive = mini.get('panel_receive');
+	$(function() {
+		var myInterval = setInterval(function() {
+			$.ajax({
+				type : "GET",
+				url : "http://localhost:8080/web1/producer/process",
+				//data : "{}",
+				//contentType : "application/json; charset=utf-8",
+				dataType : "json",
+				success : function(data) {
+					if(data.code == 'success') {
+						$(panel_send.getBodyEl()).append('<p>' + data.data + '</p>');
+					} else {
+						report(data.msg);
+					}
+				},
+				error : function(msg) {
+					report(msg);
+				}
+			});
+			
+			$.ajax({
+				type : "GET",
+				url : "http://localhost:8080/web2/consumer/process",
+				dataType : "json",
+				success : function(data) {
+					if(data.code == 'success') {
+						var div = $('<div></div>');
+						data.data.forEach(function(value) {
+							div.append('<p>' + value + '</p>');
+						});
+						$(panel_receive.getBodyEl()).append(div);
+					} else {
+						report(data.msg);
+					}
+				},
+				error : function(msg) {
+					report(msg);
+				}
+			});
+		}, 3000);
+		
+		function report(msg) {
+			clearInterval(myInterval);
+			mini.showMessageBox({
+	            showModal: false,
+	            title: "提示",
+	            iconCls: "mini-messagebox-warning",
+	            message: typeof msg === 'object' ? JSON.stringify(msg) : msg,
+	            timeout: 3000,
+	        });
+		}
+
+	})
+</script>
+</html>
